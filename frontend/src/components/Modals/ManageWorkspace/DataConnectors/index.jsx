@@ -5,6 +5,7 @@ import GithubOptions from "./Connectors/Github";
 import GitlabOptions from "./Connectors/Gitlab";
 import YoutubeOptions from "./Connectors/Youtube";
 import ConfluenceOptions from "./Connectors/Confluence";
+import DrupalWikiOptions from "./Connectors/DrupalWiki";
 import { useState } from "react";
 import ConnectorOption from "./ConnectorOption";
 import WebsiteDepthOptions from "./Connectors/WebsiteDepth";
@@ -40,7 +41,13 @@ export const getDataConnectors = (t) => ({
     description: t("connectors.confluence.description"),
     options: <ConfluenceOptions />,
   },
-});
+  drupalwiki: {
+    name: "Drupal Wiki",
+    image: ConnectorImages.drupalwiki,
+    description: "Import Drupal Wiki spaces in a single click.",
+    options: <DrupalWikiOptions />,
+  },
+};
 
 export default function DataConnectors() {
   const { t } = useTranslation();
