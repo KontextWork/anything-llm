@@ -344,7 +344,15 @@ function apiWorkspaceThreadEndpoints(app) {
             example: {
               message: "What is AnythingLLM?",
               mode: "query | chat",
-              userId: 1
+              userId: 1,
+              attachments: [
+               {
+                 name: "image.png",
+                 mime: "image/png",
+                 contentString: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+               }
+              ],
+              reset: false
             }
           }
         }
@@ -374,7 +382,13 @@ function apiWorkspaceThreadEndpoints(app) {
       */
       try {
         const { slug, threadSlug } = request.params;
-        const { message, mode = "query", userId } = reqBody(request);
+        const {
+          message,
+          mode = "query",
+          userId,
+          attachments = [],
+          reset = false,
+        } = reqBody(request);
         const workspace = await Workspace.get({ slug });
         const thread = await WorkspaceThread.get({
           slug: threadSlug,
@@ -393,7 +407,7 @@ function apiWorkspaceThreadEndpoints(app) {
           return;
         }
 
-        if (!message?.length || !VALID_CHAT_MODE.includes(mode)) {
+        if ((!message?.length || !VALID_CHAT_MODE.includes(mode)) && !reset) {
           response.status(400).json({
             id: uuidv4(),
             type: "abort",
@@ -401,7 +415,7 @@ function apiWorkspaceThreadEndpoints(app) {
             sources: [],
             close: true,
             error: !message?.length
-              ? "message parameter cannot be empty."
+              ? "Message is empty"
               : `${mode} is not a valid mode.`,
           });
           return;
@@ -414,6 +428,8 @@ function apiWorkspaceThreadEndpoints(app) {
           mode,
           user,
           thread,
+          attachments,
+          reset,
         });
         await Telemetry.sendTelemetry("sent_chat", {
           LLMSelection: process.env.LLM_PROVIDER || "openai",
@@ -469,7 +485,15 @@ function apiWorkspaceThreadEndpoints(app) {
             example: {
               message: "What is AnythingLLM?",
               mode: "query | chat",
-              userId: 1
+              userId: 1,
+              attachments: [
+               {
+                 name: "image.png",
+                 mime: "image/png",
+                 contentString: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+               }
+              ],
+              reset: false
             }
           }
         }
@@ -520,7 +544,13 @@ function apiWorkspaceThreadEndpoints(app) {
       */
       try {
         const { slug, threadSlug } = request.params;
-        const { message, mode = "query", userId } = reqBody(request);
+        const {
+          message,
+          mode = "query",
+          userId,
+          attachments = [],
+          reset = false,
+        } = reqBody(request);
         const workspace = await Workspace.get({ slug });
         const thread = await WorkspaceThread.get({
           slug: threadSlug,
@@ -539,7 +569,7 @@ function apiWorkspaceThreadEndpoints(app) {
           return;
         }
 
-        if (!message?.length || !VALID_CHAT_MODE.includes(mode)) {
+        if ((!message?.length || !VALID_CHAT_MODE.includes(mode)) && !reset) {
           response.status(400).json({
             id: uuidv4(),
             type: "abort",
@@ -568,6 +598,8 @@ function apiWorkspaceThreadEndpoints(app) {
           mode,
           user,
           thread,
+          attachments,
+          reset,
         });
         await Telemetry.sendTelemetry("sent_chat", {
           LLMSelection: process.env.LLM_PROVIDER || "openai",

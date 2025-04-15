@@ -18,6 +18,7 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { ChatTooltips } from "./ChatTooltips";
+import { MetricsProvider } from "./ChatHistory/HistoricalMessage/Actions/RenderMetrics";
 
 export default function ChatContainer({ workspace, knownHistory = [] }) {
   const { threadSlug = null } = useParams();
@@ -67,14 +68,14 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
 
     if (listening) {
       // Stop the mic if the send button is clicked
-      endTTSSession();
+      endSTTSession();
     }
     setChatHistory(prevChatHistory);
     setMessageEmit("");
     setLoadingResponse(true);
   };
 
-  function endTTSSession() {
+  function endSTTSession() {
     SpeechRecognition.stopListening();
     resetTranscript();
   }
@@ -264,23 +265,24 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
   return (
     <div
       style={{ height: isMobile ? "100%" : "calc(100% - 32px)" }}
-      className="transition-all duration-500 relative md:ml-[2px] md:mr-[16px] md:my-[16px] md:rounded-[16px] bg-theme-bg-secondary w-full h-full overflow-y-scroll no-scroll"
+      className="transition-all duration-500 relative md:ml-[2px] md:mr-[16px] md:my-[16px] md:rounded-[16px] bg-theme-bg-secondary w-full h-full overflow-y-scroll no-scroll z-[2]"
     >
       {isMobile && <SidebarMobileHeader />}
       <DnDFileUploaderWrapper>
-        <ChatHistory
-          history={chatHistory}
-          workspace={workspace}
-          sendCommand={sendCommand}
-          updateHistory={setChatHistory}
-          regenerateAssistantMessage={regenerateAssistantMessage}
-          hasAttachments={files.length > 0}
-        />
+        <MetricsProvider>
+          <ChatHistory
+            history={chatHistory}
+            workspace={workspace}
+            sendCommand={sendCommand}
+            updateHistory={setChatHistory}
+            regenerateAssistantMessage={regenerateAssistantMessage}
+            hasAttachments={files.length > 0}
+          />
+        </MetricsProvider>
         <PromptInput
           submit={handleSubmit}
           onChange={handleMessageChange}
-          inputDisabled={loadingResponse}
-          buttonDisabled={loadingResponse}
+          isStreaming={loadingResponse}
           sendCommand={sendCommand}
           attachments={files}
         />

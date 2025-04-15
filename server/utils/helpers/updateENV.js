@@ -1,3 +1,5 @@
+const { resetAllVectorStores } = require("../vectorStore/resetAllVectorStores");
+
 const KEY_MAPPING = {
   LLMProvider: {
     envKey: "LLM_PROVIDER",
@@ -33,6 +35,15 @@ const KEY_MAPPING = {
     envKey: "EMBEDDING_MODEL_PREF",
     checks: [isNotEmpty],
   },
+  AzureOpenAiModelType: {
+    envKey: "AZURE_OPENAI_MODEL_TYPE",
+    checks: [
+      (input) =>
+        ["default", "reasoning"].includes(input)
+          ? null
+          : "Invalid model type. Must be one of: default, reasoning.",
+    ],
+  },
 
   // Anthropic Settings
   AnthropicApiKey: {
@@ -41,7 +52,7 @@ const KEY_MAPPING = {
   },
   AnthropicModelPref: {
     envKey: "ANTHROPIC_MODEL_PREF",
-    checks: [isNotEmpty, validAnthropicModel],
+    checks: [isNotEmpty],
   },
 
   GeminiLLMApiKey: {
@@ -50,7 +61,7 @@ const KEY_MAPPING = {
   },
   GeminiLLMModelPref: {
     envKey: "GEMINI_LLM_MODEL_PREF",
-    checks: [isNotEmpty, validGeminiModel],
+    checks: [isNotEmpty],
   },
   GeminiSafetySetting: {
     envKey: "GEMINI_SAFETY_SETTING",
@@ -109,6 +120,10 @@ const KEY_MAPPING = {
     envKey: "OLLAMA_KEEP_ALIVE_TIMEOUT",
     checks: [isInteger],
   },
+  OllamaLLMAuthToken: {
+    envKey: "OLLAMA_AUTH_TOKEN",
+    checks: [],
+  },
 
   // Mistral AI API Settings
   MistralApiKey: {
@@ -118,16 +133,6 @@ const KEY_MAPPING = {
   MistralModelPref: {
     envKey: "MISTRAL_MODEL_PREF",
     checks: [isNotEmpty],
-  },
-
-  // Native LLM Settings
-  NativeLLMModelPref: {
-    envKey: "NATIVE_LLM_MODEL_PREF",
-    checks: [isDownloadedModel],
-  },
-  NativeLLMTokenLimit: {
-    envKey: "NATIVE_LLM_MODEL_TOKEN_LIMIT",
-    checks: [nonZero],
   },
 
   // Hugging Face LLM Inference Settings
@@ -248,6 +253,7 @@ const KEY_MAPPING = {
   EmbeddingEngine: {
     envKey: "EMBEDDING_ENGINE",
     checks: [supportedEmbeddingModel],
+    postUpdate: [handleVectorStoreReset],
   },
   EmbeddingBasePath: {
     envKey: "EMBEDDING_BASE_PATH",
@@ -256,10 +262,17 @@ const KEY_MAPPING = {
   EmbeddingModelPref: {
     envKey: "EMBEDDING_MODEL_PREF",
     checks: [isNotEmpty],
+    postUpdate: [handleVectorStoreReset],
   },
   EmbeddingModelMaxChunkLength: {
     envKey: "EMBEDDING_MODEL_MAX_CHUNK_LENGTH",
     checks: [nonZero],
+  },
+
+  // Gemini Embedding Settings
+  GeminiEmbeddingApiKey: {
+    envKey: "GEMINI_EMBEDDING_API_KEY",
+    checks: [isNotEmpty],
   },
 
   // Generic OpenAI Embedding Settings
@@ -276,6 +289,7 @@ const KEY_MAPPING = {
   VectorDB: {
     envKey: "VECTOR_DB",
     checks: [isNotEmpty, supportedVectorDB],
+    postUpdate: [handleVectorStoreReset],
   },
 
   // Chroma Options
@@ -601,6 +615,16 @@ const KEY_MAPPING = {
       },
     ],
   },
+
+  // PPIO Options
+  PPIOApiKey: {
+    envKey: "PPIO_API_KEY",
+    checks: [isNotEmpty],
+  },
+  PPIOModelPref: {
+    envKey: "PPIO_MODEL_PREF",
+    checks: [isNotEmpty],
+  },
 };
 
 function isNotEmpty(input = "") {
@@ -689,7 +713,6 @@ function supportedLLM(input = "") {
     "lmstudio",
     "localai",
     "ollama",
-    "native",
     "togetherai",
     "fireworksai",
     "mistral",
@@ -708,6 +731,7 @@ function supportedLLM(input = "") {
     "apipie",
     "xai",
     "nvidia-nim",
+    "ppio",
   ].includes(input);
   return validSelection ? null : `${input} is not a valid LLM provider.`;
 }
@@ -717,25 +741,6 @@ function supportedTranscriptionProvider(input = "") {
   return validSelection
     ? null
     : `${input} is not a valid transcription model provider.`;
-}
-
-function validGeminiModel(input = "") {
-  const validModels = [
-    "gemini-pro",
-    "gemini-1.0-pro",
-    "gemini-1.5-pro-latest",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-pro-exp-0801",
-    "gemini-1.5-pro-exp-0827",
-    "gemini-1.5-flash-exp-0827",
-    "gemini-1.5-flash-8b-exp-0827",
-    "gemini-exp-1114",
-    "gemini-exp-1121",
-    "learnlm-1.5-pro-experimental",
-  ];
-  return validModels.includes(input)
-    ? null
-    : `Invalid Model type. Must be one of ${validModels.join(", ")}.`;
 }
 
 function validGeminiSafetySetting(input = "") {
@@ -750,29 +755,11 @@ function validGeminiSafetySetting(input = "") {
     : `Invalid Safety setting. Must be one of ${validModes.join(", ")}.`;
 }
 
-function validAnthropicModel(input = "") {
-  const validModels = [
-    "claude-instant-1.2",
-    "claude-2.0",
-    "claude-2.1",
-    "claude-3-haiku-20240307",
-    "claude-3-sonnet-20240229",
-    "claude-3-opus-latest",
-    "claude-3-5-haiku-latest",
-    "claude-3-5-haiku-20241022",
-    "claude-3-5-sonnet-latest",
-    "claude-3-5-sonnet-20241022",
-    "claude-3-5-sonnet-20240620",
-  ];
-  return validModels.includes(input)
-    ? null
-    : `Invalid Model type. Must be one of ${validModels.join(", ")}.`;
-}
-
 function supportedEmbeddingModel(input = "") {
   const supported = [
     "openai",
     "azure",
+    "gemini",
     "localai",
     "native",
     "ollama",
@@ -822,22 +809,6 @@ function requiresForceMode(_, forceModeEnabled = false) {
   return forceModeEnabled === true ? null : "Cannot set this setting.";
 }
 
-function isDownloadedModel(input = "") {
-  const fs = require("fs");
-  const path = require("path");
-  const storageDir = path.resolve(
-    process.env.STORAGE_DIR
-      ? path.resolve(process.env.STORAGE_DIR, "models", "downloaded")
-      : path.resolve(__dirname, `../../storage/models/downloaded`)
-  );
-  if (!fs.existsSync(storageDir)) return false;
-
-  const files = fs
-    .readdirSync(storageDir)
-    .filter((file) => file.includes(".gguf"));
-  return files.includes(input);
-}
-
 async function validDockerizedUrl(input = "") {
   if (process.env.ANYTHING_LLM_RUNTIME !== "docker") return null;
 
@@ -874,6 +845,24 @@ function noRestrictedChars(input = "") {
   return !regExp.test(input)
     ? `Your password has restricted characters in it. Allowed symbols are _,-,!,@,$,%,^,&,*,(,),;`
     : null;
+}
+
+async function handleVectorStoreReset(key, prevValue, nextValue) {
+  if (prevValue === nextValue) return;
+  if (key === "VectorDB") {
+    console.log(
+      `Vector configuration changed from ${prevValue} to ${nextValue} - resetting ${prevValue} namespaces`
+    );
+    return await resetAllVectorStores({ vectorDbKey: prevValue });
+  }
+
+  if (key === "EmbeddingEngine" || key === "EmbeddingModelPref") {
+    console.log(
+      `${key} changed from ${prevValue} to ${nextValue} - resetting ${process.env.VECTOR_DB} namespaces`
+    );
+    return await resetAllVectorStores({ vectorDbKey: process.env.VECTOR_DB });
+  }
+  return false;
 }
 
 // This will force update .env variables which for any which reason were not able to be parsed or
@@ -968,6 +957,9 @@ function dumpENV() {
 
     // Nvidia NIM Keys that are automatically managed
     "NVIDIA_NIM_LLM_MODEL_TOKEN_LIMIT",
+
+    // OCR Language Support
+    "TARGET_OCR_LANG",
   ];
 
   // Simple sanitization of each value to prevent ENV injection via newline or quote escaping.

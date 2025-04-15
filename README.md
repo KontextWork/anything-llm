@@ -55,11 +55,13 @@ AnythingLLM divides your documents into objects called `workspaces`. A Workspace
 
 ## Cool features of AnythingLLM
 
-- 🆕 [**Custom AI Agents**](https://docs.anythingllm.com/agent/custom/introduction)
+- 🆕 [**Full MCP-compatibility**](https://docs.anythingllm.com/mcp-compatibility/overview)
+- 🆕 [**No-code AI Agent builder**](https://docs.anythingllm.com/agent-flows/overview)
 - 🖼️ **Multi-modal support (both closed and open-source LLMs!)**
+- [**Custom AI Agents**](https://docs.anythingllm.com/agent/custom/introduction)
 - 👤 Multi-user instance support and permissioning _Docker version only_
-- 🦾 Agents inside your workspace (browse the web, run code, etc)
-- 💬 [Custom Embeddable Chat widget for your website](./embed/README.md) _Docker version only_
+- 🦾 Agents inside your workspace (browse the web, etc)
+- 💬 [Custom Embeddable Chat widget for your website](https://github.com/Mintplex-Labs/anythingllm-embed/blob/main/README.md) _Docker version only_
 - 📖 Multiple document type support (PDF, TXT, DOCX, etc)
 - Simple chat UI with Drag-n-Drop funcitonality and clear citations.
 - 100% Cloud deployment ready.
@@ -98,6 +100,7 @@ AnythingLLM divides your documents into objects called `workspaces`. A Workspace
 - [Apipie](https://apipie.ai/)
 - [xAI](https://x.ai/)
 - [Novita AI (chat models)](https://novita.ai/model-api/product/llm-api?utm_source=github_anything-llm&utm_medium=github_readme&utm_campaign=link)
+- [PPIO](https://ppinfra.com?utm_source=github_anything-llm)
 
 **Embedder models:**
 
@@ -200,7 +203,7 @@ Set `DISABLE_TELEMETRY` in your server or docker .env settings to "true" to opt 
 
 We will only track usage details that help us make product and roadmap decisions, specifically:
 
-- Typ of your installation (Docker or Desktop)
+- Type of your installation (Docker or Desktop)
 - When a document is added or removed. No information _about_ the document. Just that the event occurred. This gives us an idea of use.
 - Type of vector database in use. Let's us know which vector database provider is the most used to prioritize changes when updates arrive for that provider.
 - Type of LLM in use. Let's us know the most popular choice and prioritize changes when updates arrive for that provider.
@@ -238,7 +241,7 @@ You can verify these claims by finding all locations `Telemetry.sendTelemetry` i
 
 ---
 
-Copyright © 2024 [Mintplex Labs][profile-link]. <br />
+Copyright © 2025 [Mintplex Labs][profile-link]. <br />
 This project is [MIT](./LICENSE) licensed.
 
 <!-- LINK GROUP -->
